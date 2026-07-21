@@ -22,6 +22,7 @@ create table if not exists public.solicitudes (
     justificacion_agente text not null,
     informacion_faltante jsonb not null default '[]'::jsonb,
     senales_riesgo jsonb not null default '[]'::jsonb,
+    posibles_duplicados jsonb not null default '[]'::jsonb,
     origen_analisis text not null default 'REGLAS'
         check (origen_analisis in ('IA', 'REGLAS')),
     estado text not null default 'PENDIENTE_REVISION' check (
@@ -69,8 +70,10 @@ language plpgsql
 set search_path = pg_catalog
 as $$
 begin
-    if tg_op = 'INSERT' and new.estado not in ('PENDIENTE_REVISION', 'REQUIERE_INFORMACION') then
-        raise exception 'Una solicitud nueva debe iniciar pendiente de revisión o requerir información.';
+    if tg_op = 'INSERT' and new.estado not in (
+        'PENDIENTE_REVISION', 'REQUIERE_INFORMACION', 'POSIBLE_DUPLICADO'
+    ) then
+        raise exception 'Una solicitud nueva debe iniciar en revisión, requerir información o marcar posible duplicado.';
     end if;
 
     if tg_op = 'UPDATE' and new.estado is distinct from old.estado and not (

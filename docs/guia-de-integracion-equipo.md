@@ -48,6 +48,8 @@ Prueba mínima: simular una falla del proveedor y comprobar que el fallback entr
 3. Conservar `origen_analisis`, señales, faltantes y candidatos de duplicado para trazabilidad según el esquema acordado.
 4. Devolver candidatos como `PosibleDuplicado`; no establecer un duplicado como confirmado desde el repositorio.
 
+Punto de entrada para persistir un análisis: `crear_solicitud_desde_analisis(entrada, analisis, estado)` desde `src.repositories`.
+
 Prueba mínima: confirmar la respuesta de Supabase y luego la auditoría; si la auditoría falla, informar trazabilidad incompleta sin repetir la operación principal.
 
 ### Integrante 4: Streamlit e integración visible

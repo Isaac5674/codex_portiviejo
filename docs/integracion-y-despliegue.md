@@ -7,8 +7,8 @@ Esta guía prepara la integración del equipo y el despliegue posterior. No decl
 | Componente | Estado | Responsable |
 |---|---|---|
 | Contratos, modelos y reglas locales | Disponible y probado | Integrante 1 |
-| Agente y herramientas | Pendiente de integración | Integrante 2 |
-| Supabase, RLS, repositorios y auditoría | Pendiente de integración | Integrante 3 |
+| Agente y herramientas | Disponible y probado | Integrante 2 |
+| Supabase, RLS, repositorios y auditoría | Disponible y probado | Integrante 3 |
 | Streamlit, revisión humana y flujo completo | Pendiente de integración | Integrante 4 |
 | Despliegue final | Bloqueado hasta completar criterios de aceptación | Responsable de despliegue |
 
@@ -113,4 +113,4 @@ La plataforma de despliegue todavía no está definida. Cuando se elija una, man
 6. Publicar solo una versión que supere la lista previa.
 7. Conservar el commit estable anterior para revertir si falla una verificación.
 
-No configurar despliegue, claves ni conectividad real hasta que los Integrantes 2, 3 y 4 hayan entregado y validado sus módulos.
+No configurar despliegue, claves ni conectividad real hasta que el Integrante 4 entregue y valide la integración del flujo completo.
