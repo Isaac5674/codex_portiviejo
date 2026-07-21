@@ -1,0 +1,152 @@
+# Contratos de datos
+
+## Objetivo
+
+Definir estructuras estables entre la interfaz, el agente, las reglas y Supabase.
+
+## Enumeraciones autorizadas
+
+### Categorías
+
+- `AGUA`
+- `BASURA`
+- `ALUMBRADO`
+- `VIALIDAD`
+- `ALCANTARILLADO`
+- `ESPACIO_PUBLICO`
+- `OTRO`
+
+### Prioridades
+
+- `BAJA`
+- `MEDIA`
+- `ALTA`
+
+### Estados
+
+- `PENDIENTE_REVISION`
+- `REQUIERE_INFORMACION`
+- `APROBADA`
+- `MODIFICADA_Y_APROBADA`
+- `RECHAZADA`
+- `POSIBLE_DUPLICADO`
+
+### Actores de auditoría
+
+- `CIUDADANO`
+- `AGENTE`
+- `OPERADOR`
+- `SISTEMA`
+
+## Entrada mínima del reporte
+
+```json
+{
+  "descripcion": "Hay una alcantarilla sin tapa frente a la escuela.",
+  "ubicacion": "Barrio San José, frente a la escuela"
+}
+```
+
+Reglas:
+
+- `descripcion` no puede estar vacía.
+- `ubicacion` no puede estar vacía.
+- Valores como `Sin especificar` deben tratarse como información insuficiente.
+- No se deben agregar datos personales innecesarios.
+
+## Salida estructurada del análisis
+
+```json
+{
+  "resumen": "Alcantarilla sin tapa frente a una escuela",
+  "categoria": "ALCANTARILLADO",
+  "prioridad": "ALTA",
+  "area_responsable": "Alcantarillado",
+  "ubicacion": "Barrio San José, frente a la escuela",
+  "informacion_faltante": [],
+  "senales_riesgo": [
+    "alcantarilla abierta",
+    "cercanía a una escuela",
+    "riesgo de accidente"
+  ],
+  "justificacion": "Se propone prioridad alta por riesgo para peatones.",
+  "posibles_duplicados": [],
+  "origen_analisis": "IA"
+}
+```
+
+## Reglas del contrato
+
+- La categoría debe pertenecer a la lista autorizada.
+- La prioridad debe pertenecer a la lista autorizada.
+- El área debe corresponder a la categoría.
+- `informacion_faltante` debe ser una lista.
+- `senales_riesgo` debe ser una lista.
+- `posibles_duplicados` debe ser una lista.
+- `justificacion` no puede estar vacía.
+- `origen_analisis` debe ser `IA` o `REGLAS`.
+- La salida debe validarse antes de persistirse.
+
+## Expediente preliminar
+
+Un expediente nuevo debe iniciar con:
+
+```json
+{
+  "estado": "PENDIENTE_REVISION",
+  "prioridad_final": null,
+  "area_final": null,
+  "revisado_en": null,
+  "revisor": null,
+  "motivo_revision": null
+}
+```
+
+Cuando falte información crítica, puede iniciar con:
+
+```json
+{
+  "estado": "REQUIERE_INFORMACION"
+}
+```
+
+## Cambio humano
+
+```json
+{
+  "solicitud_id": 123,
+  "accion": "MODIFICAR_Y_APROBAR",
+  "categoria_final": "VIALIDAD",
+  "prioridad_final": "ALTA",
+  "area_final": "Obras públicas",
+  "motivo_revision": "Se observó riesgo de accidente vehicular.",
+  "revisor": "Operador demo"
+}
+```
+
+## Campos actualizables
+
+Desde la revisión humana solo se pueden modificar campos expresamente permitidos:
+
+- `categoria`
+- `prioridad_final`
+- `area_final`
+- `estado`
+- `revisado_en`
+- `revisor`
+- `motivo_revision`
+- `posible_duplicado_de`
+
+No aceptar un diccionario arbitrario del usuario para actualizar cualquier columna.
+
+## Compatibilidad
+
+Todo cambio en un contrato requiere actualizar:
+
+- Modelos Pydantic.
+- Reglas.
+- Repositorios.
+- Interfaz.
+- Pruebas.
+- Documentación.
+- Esquema SQL, cuando corresponda.
