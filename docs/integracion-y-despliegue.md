@@ -7,12 +7,20 @@ Esta guía prepara la integración del equipo y el despliegue posterior. No decl
 | Componente | Estado | Responsable |
 |---|---|---|
 | Contratos, modelos y reglas locales | Disponible y probado | Integrante 1 |
-| Agente y herramientas | Código y pruebas unitarias disponibles; falta integración con la interfaz | Integrante 2 |
-| Supabase, RLS, repositorios y auditoría | Código, esquema y pruebas unitarias disponibles; falta verificar la configuración remota y la integración | Integrante 3 |
-| Streamlit, revisión humana y flujo completo | Pendiente de integración | Integrante 4 |
+| Agente, herramientas y fallback | Disponible e integrado | Integrante 2 |
+| Supabase, RLS, repositorios y auditoría | Disponible e integrado | Integrante 3 |
+| Streamlit, revisión humana y flujo completo | Disponible e integrado | Integrante 4 |
 | Despliegue final | Bloqueado hasta completar criterios de aceptación | Responsable de despliegue |
 
-Al revisar la integración se alineó el trigger del esquema con el dominio: un caso nuevo con candidatos puede iniciar como `POSIBLE_DUPLICADO`, sin que esto confirme que los reportes sean iguales.
+Al revisar la integración se alineó el trigger del esquema con el dominio: un
+caso nuevo con candidatos puede iniciar como `POSIBLE_DUPLICADO`, sin que esto
+confirme que los reportes sean iguales.
+
+La suite local cubre los contratos, reglas, agente, herramientas, repositorios e
+interfaz mediante dobles controlados. La conexión con un proyecto remoto de
+Supabase, la aplicación de migraciones y una ejecución real de OpenAI requieren
+credenciales de un entorno de prueba y no se consideran verificadas por las
+pruebas locales.
 
 ## Preparación local
 
@@ -106,7 +114,8 @@ No desplegar hasta que todos los criterios de [`criterios-de-aceptacion.md`](cri
 
 ## Procedimiento de despliegue
 
-Todavía no existe `app.py` ni una interfaz Streamlit integrada en la rama actual; por ello no hay una aplicación completa que desplegar. La plataforma de despliegue tampoco está definida. Cuando el Integrante 4 entregue el flujo completo y se elija una plataforma, mantener el mismo flujo:
+La interfaz Streamlit ya está integrada, pero la plataforma de despliegue no
+está definida. Cuando se elija una, mantener el mismo flujo:
 
 1. Crear un entorno separado del desarrollo.
 2. Instalar desde `requirements.txt`.
@@ -116,4 +125,5 @@ Todavía no existe `app.py` ni una interfaz Streamlit integrada en la rama actua
 6. Publicar solo una versión que supere la lista previa.
 7. Conservar el commit estable anterior para revertir si falla una verificación.
 
-No configurar despliegue, claves ni conectividad real hasta que los Integrantes 2, 3 y 4 hayan entregado y validado sus módulos.
+No configurar despliegue, claves ni conectividad real hasta verificar las
+migraciones y los flujos externos en un entorno de prueba separado.
