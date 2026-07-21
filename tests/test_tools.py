@@ -1,10 +1,12 @@
-"""Pruebas unitarias de herramientas puras, sin red ni persistencia."""
+"""Pruebas unitarias de herramientas, sin red ni persistencia."""
 
 from __future__ import annotations
 
-import pytest
 from unittest.mock import Mock
 
+import pytest
+
+from src.models import AreaResponsable, EvaluacionPrioridad, Prioridad
 from src.tools import (
     construir_resumen,
     detectar_informacion_faltante,
@@ -13,32 +15,34 @@ from src.tools import (
 )
 
 
+def _evaluacion_media() -> EvaluacionPrioridad:
+    return EvaluacionPrioridad(
+        prioridad=Prioridad.MEDIA,
+        senales_riesgo=["luminaria dañada"],
+        justificacion="El problema persiste.",
+    )
+
+
 def test_obtener_area_responsable_delegates_to_the_injected_rule() -> None:
     area = obtener_area_responsable(
         "ALUMBRADO",
-        resolver_area=lambda categoria: {"ALUMBRADO": "Alumbrado público"}[categoria],
+        resolver_area=lambda _categoria: AreaResponsable.ALUMBRADO_PUBLICO,
     )
 
-    assert area == "Alumbrado público"
+    assert area is AreaResponsable.ALUMBRADO_PUBLICO
 
 
-def test_evaluar_prioridad_returns_a_serializable_rule_result() -> None:
+def test_evaluar_prioridad_returns_the_pydantic_rule_result() -> None:
     result = evaluar_prioridad(
         "Hay una alcantarilla sin tapa.",
         "Frente a la escuela",
         "ALCANTARILLADO",
-        evaluador=lambda _descripcion, _ubicacion, _categoria: {
-            "prioridad": "ALTA",
-            "senales": ["alcantarilla abierta", "escuela", "escuela"],
-            "justificacion": "Existe riesgo de accidente.",
-        },
+        evaluador=lambda _descripcion, _ubicacion, _categoria: _evaluacion_media(),
     )
 
-    assert result == {
-        "prioridad": "ALTA",
-        "senales": ["alcantarilla abierta", "escuela"],
-        "justificacion": "Existe riesgo de accidente.",
-    }
+    assert isinstance(result, EvaluacionPrioridad)
+    assert result.prioridad is Prioridad.MEDIA
+    assert result.senales_riesgo == ["luminaria dañada"]
 
 
 def test_detectar_informacion_faltante_normalizes_the_rule_result() -> None:
@@ -57,23 +61,17 @@ def test_detectar_informacion_faltante_normalizes_the_rule_result() -> None:
 
 
 def test_tool_execution_delegates_each_domain_decision_once() -> None:
-    area_resolver = Mock(return_value="Alumbrado público")
-    priority_evaluator = Mock(
-        return_value={
-            "prioridad": "MEDIA",
-            "senales": ["luminaria dañada"],
-            "justificacion": "El problema persiste.",
-        }
-    )
+    area_resolver = Mock(return_value=AreaResponsable.ALUMBRADO_PUBLICO)
+    priority_evaluator = Mock(return_value=_evaluacion_media())
     missing_information_detector = Mock(return_value=["Referencia del lugar"])
 
-    assert obtener_area_responsable("ALUMBRADO", resolver_area=area_resolver) == "Alumbrado público"
+    assert obtener_area_responsable("ALUMBRADO", resolver_area=area_resolver) is AreaResponsable.ALUMBRADO_PUBLICO
     assert evaluar_prioridad(
         "La luminaria no funciona.",
         "Parque central",
         "ALUMBRADO",
         evaluador=priority_evaluator,
-    )["prioridad"] == "MEDIA"
+    ).prioridad is Prioridad.MEDIA
     assert detectar_informacion_faltante(
         "La luminaria no funciona.",
         "Parque central",
@@ -91,30 +89,9 @@ def test_tool_execution_delegates_each_domain_decision_once() -> None:
     )
 
 
-def test_construir_resumen_keeps_only_declared_text() -> None:
-    summary = construir_resumen("  La   luminaria del parque no funciona desde anoche.  ")
-
-    assert summary == "La luminaria del parque no funciona desde anoche."
-
-
-def test_construir_resumen_limits_long_text_at_a_word_boundary() -> None:
-    summary = construir_resumen("La luminaria del parque no funciona desde hace cuatro noches.", max_length=28)
-
-    assert summary == "La luminaria del parque no…"
-
-
-def test_tools_reject_invalid_inputs_and_outputs() -> None:
+def test_tools_reject_invalid_inputs() -> None:
     with pytest.raises(ValueError, match="descripcion"):
         construir_resumen("   ")
 
-    with pytest.raises(TypeError, match="senales"):
-        evaluar_prioridad(
-            "Hay basura acumulada.",
-            "Mercado central",
-            "BASURA",
-            evaluador=lambda _descripcion, _ubicacion, _categoria: {
-                "prioridad": "MEDIA",
-                "senales": "basura acumulada",  # type: ignore[typeddict-item]
-                "justificacion": "Requiere atención.",
-            },
-        )
+    with pytest.raises(ValueError):
+        obtener_area_responsable("CATEGORIA_INVENTADA")

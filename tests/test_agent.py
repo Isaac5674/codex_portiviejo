@@ -105,7 +105,7 @@ def test_uses_the_local_rules_module_when_openai_is_unavailable(
         sys.modules,
         "src.rules",
         types.SimpleNamespace(
-            clasificar_reporte=lambda description, location: AnalysisForTest(
+            analizar_reporte_local=lambda description, location: AnalysisForTest(
                 resumen=f"{description} en {location}", origen_analisis="IA"
             )
         ),

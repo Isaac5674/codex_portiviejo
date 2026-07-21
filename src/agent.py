@@ -153,9 +153,9 @@ async def _run_fallback(
 def _load_local_rules_classifier() -> FallbackClassifier[AnalysisModel]:
     """Load the local classifier only when the fallback is needed."""
 
-    from .rules import clasificar_reporte
+    from .rules import analizar_reporte_local
 
-    return clasificar_reporte
+    return analizar_reporte_local
 
 
 def _safe_failure_reason(error: Exception) -> str:
