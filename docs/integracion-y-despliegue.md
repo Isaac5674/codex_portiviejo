@@ -10,7 +10,7 @@ Esta guía prepara la integración del equipo y el despliegue posterior. No decl
 | Agente, herramientas y fallback | Disponible e integrado | Integrante 2 |
 | Supabase, RLS, repositorios y auditoría | Disponible e integrado | Integrante 3 |
 | Streamlit, revisión humana y flujo completo | Disponible e integrado | Integrante 4 |
-| Despliegue final | Configuración de Vercel preparada; falta autenticar, configurar secretos y verificar producción | Responsable de despliegue |
+| Despliegue final | Publicado y verificado en Vercel; falta configurar OpenAI y Supabase | Responsable de despliegue |
 
 Al revisar la integración se alineó el trigger del esquema con el dominio: un
 caso nuevo con candidatos puede iniciar como `POSIBLE_DUPLICADO`, sin que esto
@@ -119,6 +119,12 @@ Vercel ejecuta Streamlit mediante la imagen declarada en `Dockerfile.vercel`.
 El contenedor escucha en la variable `PORT` asignada por Vercel y no contiene
 archivos `.env`, pruebas ni documentación.
 
+Producción: [https://porto-reporta.vercel.app](https://porto-reporta.vercel.app)
+
+La configuración explícita de `vercel.json` registra el servicio `app` y envía
+todas las rutas al contenedor. Esta reescritura es necesaria para que la
+interfaz y las conexiones de Streamlit no respondan con `404 NOT_FOUND`.
+
 1. Autenticar la CLI con `vercel login`.
 2. Enlazar o crear el proyecto con `vercel link`.
 3. Configurar `OPENAI_API_KEY`, `SUPABASE_URL`, `SUPABASE_SECRET_KEY` y
@@ -131,3 +137,15 @@ archivos `.env`, pruebas ni documentación.
 El despliegue puede iniciar sin `OPENAI_API_KEY` usando reglas locales, pero
 la creación y consulta de expedientes requieren las dos variables de Supabase.
 Los secretos nunca deben agregarse al repositorio ni incorporarse a la imagen.
+
+## Estado verificado en producción
+
+- Vercel informa el despliegue como `READY`.
+- La URL pública responde `HTTP 200`.
+- La navegación y la pantalla inicial cargan correctamente.
+- El análisis local produce una salida estructurada y visible.
+- Sin variables externas, la interfaz muestra que OpenAI usa fallback y que la
+  búsqueda o persistencia de Supabase no está disponible.
+- La conexión automática del proyecto con GitHub requiere que la cuenta de
+  Vercel tenga acceso al repositorio; el despliegue manual mediante CLI sí está
+  operativo.

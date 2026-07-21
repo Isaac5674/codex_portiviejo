@@ -4,6 +4,10 @@ Prototipo para recibir solicitudes ciudadanas, analizarlas de forma estructurada
 
 > PortoReporta es un prototipo académico o de hackatón. No es una plataforma oficial del Municipio de Portoviejo y no envía reportes a instituciones reales.
 
+## Aplicación publicada
+
+La interfaz está disponible en [porto-reporta.vercel.app](https://porto-reporta.vercel.app). Sin credenciales de OpenAI utiliza reglas locales; las funciones de persistencia requieren configurar Supabase en Vercel.
+
 ## Principio del proyecto
 
 > La interfaz captura y muestra, el agente interpreta y recomienda, las reglas validan, los repositorios persisten y una persona toma la decisión final.
