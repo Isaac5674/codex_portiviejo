@@ -16,4 +16,4 @@ Para trabajar en la base de datos, cada integrante debe iniciar sesión con su p
 
 ## Estado actual
 
-Las tablas `solicitudes` y `auditoria`, sus índices, el trigger de transiciones y RLS ya están aplicados. Los datos de demostración repetibles están en [`supabase/seed.sql`](../supabase/seed.sql).
+Las tablas `solicitudes` y `auditoria`, sus índices, el trigger de transiciones y RLS ya están aplicados. Antes de integrar casos con candidatos de duplicado, aplicar la migración [`202607210001_permitir_posible_duplicado_inicial.sql`](../supabase/migrations/202607210001_permitir_posible_duplicado_inicial.sql), que alinea el trigger ya existente con el contrato de dominio. Los datos de demostración repetibles están en [`supabase/seed.sql`](../supabase/seed.sql).
