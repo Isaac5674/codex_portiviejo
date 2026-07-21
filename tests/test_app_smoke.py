@@ -36,18 +36,12 @@ def test_initial_session_values_are_empty() -> None:
     assert all(value is None for value in app.SESSION_DEFAULTS.values())
 
 
-def test_payload_uses_domain_state_and_preserves_original_recommendation() -> None:
+def test_audit_detail_preserves_original_recommendation() -> None:
     app = importlib.import_module("app")
     entry = app.EntradaReporte(
         descripcion="Hay un hueco peligroso.", ubicacion="Sin especificar"
     )
     analysis = app.analizar_reporte_local(entry.descripcion, entry.ubicacion)
-
-    payload = app._analysis_payload(entry, analysis)
-
-    assert payload["estado"] == "REQUIERE_INFORMACION"
-    assert payload["categoria"] == "VIALIDAD"
-    assert payload["origen_analisis"] == "REGLAS"
 
     audit_detail = app._analysis_audit_detail(analysis)
     assert audit_detail["categoria_propuesta"] == "VIALIDAD"

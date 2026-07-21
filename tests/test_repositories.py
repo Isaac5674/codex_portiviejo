@@ -5,6 +5,16 @@ from typing import Any
 
 import pytest
 
+from src.models import (
+    AnalisisReporte,
+    AreaResponsable,
+    Categoria,
+    EntradaReporte,
+    EstadoSolicitud,
+    OrigenAnalisis,
+    PosibleDuplicado,
+    Prioridad,
+)
 from src.repositories import (
     AuditTrailIncompleteError,
     InvalidAuditDetailError,
@@ -88,6 +98,7 @@ def valid_request() -> dict[str, Any]:
         "justificacion_agente": "Existe riesgo de accidente.",
         "senales_riesgo": ["riesgo de accidente"],
         "informacion_faltante": [],
+        "posibles_duplicados": [],
         "origen_analisis": "REGLAS",
     }
 
@@ -110,6 +121,45 @@ def test_crear_solicitud_confirma_respuesta_y_registra_auditoria() -> None:
         "accion": "SOLICITUD_CREADA",
         "detalle": {"origen": "repositorio", "estado": "PENDIENTE_REVISION"},
     }
+
+
+def test_crear_solicitud_desde_analisis_adapta_el_contrato_pydantic() -> None:
+    client = FakeClient(
+        {
+            ("solicitudes", "insert"): FakeResponse([{"id": 8, "estado": "POSIBLE_DUPLICADO"}]),
+            ("auditoria", "insert"): FakeResponse([{"id": 15, "solicitud_id": 8}]),
+        }
+    )
+    entrada = EntradaReporte(descripcion="Fuga junto al mercado.", ubicacion="Mercado central")
+    analisis = AnalisisReporte(
+        resumen="Fuga junto al mercado",
+        categoria=Categoria.AGUA,
+        prioridad=Prioridad.MEDIA,
+        area_responsable=AreaResponsable.AGUA_POTABLE,
+        ubicacion=entrada.ubicacion,
+        informacion_faltante=[],
+        senales_riesgo=["fuga de agua"],
+        justificacion="Se detectó una fuga de agua.",
+        posibles_duplicados=[
+            PosibleDuplicado(
+                solicitud_id=1,
+                similitud=0.8,
+                razon="Misma referencia de mercado.",
+            )
+        ],
+        origen_analisis=OrigenAnalisis.REGLAS,
+    )
+
+    result = SolicitudesRepository(client).crear_solicitud_desde_analisis(
+        entrada, analisis, EstadoSolicitud.POSIBLE_DUPLICADO
+    )
+
+    assert result["id"] == 8
+    assert client.calls[0].payload["prioridad_agente"] == "MEDIA"
+    assert client.calls[0].payload["area_agente"] == "Agua potable"
+    assert client.calls[0].payload["posibles_duplicados"] == [
+        {"solicitud_id": 1, "similitud": 0.8, "razon": "Misma referencia de mercado."}
+    ]
 
 
 def test_crear_solicitud_informa_auditoria_incompleta_sin_repetir_insercion() -> None:
@@ -224,9 +274,9 @@ def test_buscar_duplicados_devuelve_sugerencias_ordenadas_sin_confirmarlas() -> 
         umbral_similitud=0.2,
     )
 
-    assert results[0]["id"] == 1
-    assert results[0]["es_posible_duplicado"] is True
-    assert 0.2 <= results[0]["similitud"] <= 1
+    assert results[0].solicitud_id == 1
+    assert 0.2 <= results[0].similitud <= 1
+    assert "Coincidencia aproximada" in results[0].razon
 
 
 def test_cliente_informa_configuracion_faltante_sin_exponer_secretos(monkeypatch: pytest.MonkeyPatch) -> None:

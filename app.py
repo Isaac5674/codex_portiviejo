@@ -119,14 +119,6 @@ def _render_home() -> None:
     )
 
 
-def _candidate_from_row(row: dict[str, Any]) -> PosibleDuplicado:
-    return PosibleDuplicado(
-        solicitud_id=row["id"],
-        similitud=row["similitud"],
-        razon="Coincidencia aproximada de descripción, ubicación y categoría.",
-    )
-
-
 def _analyze_report(descripcion: str, ubicacion: str) -> None:
     _clear_messages()
     try:
@@ -157,9 +149,8 @@ def _analyze_report(descripcion: str, ubicacion: str) -> None:
             analisis.ubicacion,
             entrada.descripcion,
         )
-        duplicates = [_candidate_from_row(row) for row in candidates]
         st.session_state.analisis_actual = analisis.model_copy(
-            update={"posibles_duplicados": duplicates}
+            update={"posibles_duplicados": candidates}
         )
     except _PERSISTENCE_ERRORS:
         _add_warning(
@@ -185,31 +176,6 @@ def _validation_message(exc: ValidationError) -> str:
     return str(first_error.get("msg", "La entrada no es válida.")).removeprefix(
         "Value error, "
     )
-
-
-def _analysis_payload(
-    entrada: EntradaReporte, analisis: AnalisisReporte
-) -> dict[str, Any]:
-    estado = determinar_estado_inicial(
-        analisis.informacion_faltante,
-        analisis.posibles_duplicados,
-    )
-    payload: dict[str, Any] = {
-        "descripcion_original": entrada.descripcion,
-        "resumen": analisis.resumen,
-        "ubicacion": analisis.ubicacion,
-        "categoria": analisis.categoria.value,
-        "prioridad_agente": analisis.prioridad.value,
-        "area_agente": analisis.area_responsable.value,
-        "justificacion_agente": analisis.justificacion,
-        "informacion_faltante": analisis.informacion_faltante,
-        "senales_riesgo": analisis.senales_riesgo,
-        "origen_analisis": analisis.origen_analisis.value,
-        "estado": estado.value,
-    }
-    if analisis.posibles_duplicados:
-        payload["posible_duplicado_de"] = analisis.posibles_duplicados[0].solicitud_id
-    return payload
 
 
 def _analysis_audit_detail(analisis: AnalisisReporte) -> dict[str, Any]:
@@ -238,8 +204,14 @@ def _create_case() -> None:
 
     try:
         audit_detail = _analysis_audit_detail(analisis)
-        solicitud = _repository().crear_solicitud(
-            _analysis_payload(entrada, analisis),
+        estado = determinar_estado_inicial(
+            analisis.informacion_faltante,
+            analisis.posibles_duplicados,
+        )
+        solicitud = _repository().crear_solicitud_desde_analisis(
+            entrada,
+            analisis,
+            estado,
             actor="CIUDADANO",
             detalle_auditoria=audit_detail,
         )

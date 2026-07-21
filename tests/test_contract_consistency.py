@@ -9,7 +9,7 @@ from src.rules import determinar_estado_inicial
 
 
 SCHEMA_PATH = Path("supabase/schema.sql")
-MIGRATION_PATH = Path("supabase/migrations/202607210001_permitir_posible_duplicado_inicial.sql")
+MIGRATION_PATH = Path("supabase/migrations/20260721201623_allow_duplicate_candidate_initial_state.sql")
 
 
 @pytest.mark.parametrize(

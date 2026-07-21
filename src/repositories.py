@@ -14,6 +14,7 @@ import json
 import re
 from typing import Any
 
+from .models import AnalisisReporte, Categoria, EntradaReporte, EstadoSolicitud, PosibleDuplicado
 from .supabase_client import get_supabase_client
 
 
@@ -56,6 +57,7 @@ SOLICITUD_CREATION_FIELDS = frozenset(
         "justificacion_agente",
         "informacion_faltante",
         "senales_riesgo",
+        "posibles_duplicados",
         "origen_analisis",
         "estado",
         "posible_duplicado_de",
@@ -229,6 +231,53 @@ class SolicitudesRepository:
             ) from exc
         return solicitud
 
+    def crear_solicitud_desde_analisis(
+        self,
+        entrada: EntradaReporte,
+        analisis: AnalisisReporte,
+        estado: EstadoSolicitud,
+        *,
+        actor: str = "CIUDADANO",
+        accion: str = "SOLICITUD_CREADA",
+        detalle_auditoria: Mapping[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        """Persiste únicamente contratos de dominio ya validados.
+
+        El estado inicial se recibe explícitamente desde las reglas para que el
+        repositorio no decida flujos de negocio ni sustituya la revisión humana.
+        """
+
+        if not isinstance(entrada, EntradaReporte):
+            raise TypeError("La entrada debe ser un EntradaReporte validado.")
+        if not isinstance(analisis, AnalisisReporte):
+            raise TypeError("El análisis debe ser un AnalisisReporte validado.")
+        if not isinstance(estado, EstadoSolicitud):
+            raise TypeError("El estado debe ser un EstadoSolicitud válido.")
+
+        payload = {
+            "descripcion_original": entrada.descripcion,
+            "resumen": analisis.resumen,
+            "ubicacion": entrada.ubicacion,
+            "categoria": analisis.categoria.value,
+            "prioridad_agente": analisis.prioridad.value,
+            "area_agente": analisis.area_responsable.value,
+            "justificacion_agente": analisis.justificacion,
+            "informacion_faltante": analisis.informacion_faltante,
+            "senales_riesgo": analisis.senales_riesgo,
+            "posibles_duplicados": [
+                candidato.model_dump(mode="json")
+                for candidato in analisis.posibles_duplicados
+            ],
+            "origen_analisis": analisis.origen_analisis.value,
+            "estado": estado.value,
+        }
+        return self.crear_solicitud(
+            payload,
+            actor=actor,
+            accion=accion,
+            detalle_auditoria=detalle_auditoria,
+        )
+
     def listar_solicitudes(self, *, limite: int = 100) -> list[dict[str, Any]]:
         limite = self._bounded_limit(limite)
         try:
@@ -327,18 +376,22 @@ class SolicitudesRepository:
 
     def buscar_candidatos_duplicados(
         self,
-        categoria: str,
+        categoria: Categoria | str,
         ubicacion: str,
         descripcion: str = "",
         *,
         limite: int = 20,
         dias_recientes: int = 90,
         umbral_similitud: float = 0.45,
-    ) -> list[dict[str, Any]]:
+    ) -> list[PosibleDuplicado]:
         """Devuelve sugerencias ordenadas; nunca confirma un duplicado."""
 
-        if not isinstance(categoria, str) or not categoria.strip():
-            raise ValueError("La categoría es obligatoria para buscar duplicados.")
+        try:
+            categoria_valida = (
+                categoria if isinstance(categoria, Categoria) else Categoria(categoria)
+            )
+        except (TypeError, ValueError) as exc:
+            raise ValueError("La categoría es obligatoria para buscar duplicados.") from exc
         if not isinstance(ubicacion, str) or not ubicacion.strip():
             raise ValueError("La ubicación es obligatoria para buscar duplicados.")
         if not 0.0 <= umbral_similitud <= 1.0:
@@ -351,7 +404,7 @@ class SolicitudesRepository:
             response = (
                 self._client.table("solicitudes")
                 .select("id,resumen,descripcion_original,ubicacion,categoria,estado,creado_en")
-                .eq("categoria", categoria)
+                .eq("categoria", categoria_valida.value)
                 .in_("estado", list(ACTIVE_DUPLICATE_STATES))
                 .gte("creado_en", since)
                 .limit(self._bounded_limit(limite, maximum=50))
@@ -369,7 +422,7 @@ class SolicitudesRepository:
                 "No fue posible buscar posibles duplicados en Supabase."
             ) from exc
 
-        candidates: list[dict[str, Any]] = []
+        candidates: list[PosibleDuplicado] = []
         for row in data:
             if not isinstance(row, Mapping):
                 continue
@@ -379,11 +432,14 @@ class SolicitudesRepository:
             location_score = _similarity(ubicacion, row.get("ubicacion"))
             score = round((description_score * 0.7) + (location_score * 0.3), 3)
             if score >= umbral_similitud:
-                candidate = dict(row)
-                candidate["similitud"] = score
-                candidate["es_posible_duplicado"] = True
-                candidates.append(candidate)
-        return sorted(candidates, key=lambda item: item["similitud"], reverse=True)
+                candidates.append(
+                    PosibleDuplicado(
+                        solicitud_id=_positive_id(row.get("id")),
+                        similitud=score,
+                        razon="Coincidencia aproximada de descripción y ubicación.",
+                    )
+                )
+        return sorted(candidates, key=lambda item: item.similitud, reverse=True)
 
     def registrar_evento_auditoria(
         self,
@@ -510,6 +566,17 @@ def crear_solicitud(datos: Mapping[str, Any] | Any, **kwargs: Any) -> dict[str, 
     return _default_repository().crear_solicitud(datos, **kwargs)
 
 
+def crear_solicitud_desde_analisis(
+    entrada: EntradaReporte,
+    analisis: AnalisisReporte,
+    estado: EstadoSolicitud,
+    **kwargs: Any,
+) -> dict[str, Any]:
+    return _default_repository().crear_solicitud_desde_analisis(
+        entrada, analisis, estado, **kwargs
+    )
+
+
 def obtener_solicitudes(*, limite: int = 100) -> list[dict[str, Any]]:
     return _default_repository().listar_solicitudes(limite=limite)
 
@@ -535,8 +602,8 @@ def obtener_auditoria_por_solicitud(
 
 
 def buscar_candidatos_duplicados(
-    categoria: str, ubicacion: str, descripcion: str = "", **kwargs: Any
-) -> list[dict[str, Any]]:
+    categoria: Categoria | str, ubicacion: str, descripcion: str = "", **kwargs: Any
+) -> list[PosibleDuplicado]:
     return _default_repository().buscar_candidatos_duplicados(
         categoria, ubicacion, descripcion, **kwargs
     )

@@ -1,5 +1,7 @@
--- Alinea el trigger ya aplicado con determinar_estado_inicial del dominio.
--- Es seguro para solicitudes existentes: solo amplía los estados permitidos al insertar.
+-- Propósito: permitir que un candidato de duplicado inicie la revisión humana.
+-- Dependencias: public.validar_transicion_solicitud creada por initial_portoreporta_schema.
+-- Compatibilidad: amplía un estado inicial ya autorizado por el contrato de dominio.
+-- Reversión: restaurar la función sin POSIBLE_DUPLICADO en la condición de INSERT.
 
 create or replace function public.validar_transicion_solicitud()
 returns trigger
@@ -10,7 +12,7 @@ begin
     if tg_op = 'INSERT' and new.estado not in (
         'PENDIENTE_REVISION', 'REQUIERE_INFORMACION', 'POSIBLE_DUPLICADO'
     ) then
-        raise exception 'Una solicitud nueva debe iniciar pendiente de revisión, requerir información o marcar un posible duplicado.';
+        raise exception 'A new request must start pending review, require information, or be a possible duplicate.';
     end if;
 
     if tg_op = 'UPDATE' and new.estado is distinct from old.estado and not (
@@ -23,7 +25,7 @@ begin
             'APROBADA', 'MODIFICADA_Y_APROBADA', 'RECHAZADA'
         ))
     ) then
-        raise exception 'Transición de estado no permitida: % a %.', old.estado, new.estado;
+        raise exception 'Invalid status transition: % to %.', old.estado, new.estado;
     end if;
 
     return new;
