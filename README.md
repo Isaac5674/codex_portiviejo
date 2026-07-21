@@ -196,3 +196,7 @@ El trabajo conjunto está listo únicamente cuando:
 - No hay secretos ni datos personales innecesarios en el repositorio.
 
 La lista completa se encuentra en [`docs/criterios-de-aceptacion.md`](docs/criterios-de-aceptacion.md).
+
+## Preparación para integración y despliegue
+
+La guía de [integración y despliegue](docs/integracion-y-despliegue.md) contiene dependencias, variables de entorno, el contrato entre integrantes, pruebas previas y la lista de salida. El proyecto no debe desplegarse hasta que los cuatro módulos cumplan los criterios de aceptación.

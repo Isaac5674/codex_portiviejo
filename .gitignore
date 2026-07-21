@@ -1,0 +1,14 @@
+# Entornos y cachés de Python
+.venv/
+__pycache__/
+.pytest_cache/
+*.py[cod]
+
+# Secretos y configuración local
+.env
+.streamlit/secrets.toml
+
+# Cobertura y herramientas locales
+.coverage
+htmlcov/
+.ruff_cache/

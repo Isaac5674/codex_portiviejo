@@ -90,3 +90,35 @@ Mostrar resultado
 - Pedir confirmación antes de rechazar.
 - No mostrar éxito si la auditoría falló.
 - Permitir reintentar una operación fallida.
+
+## Flujo local implementado por el dominio
+
+```text
+Descripción y ubicación
+        ↓
+EntradaReporte (validación Pydantic)
+        ↓
+Clasificación determinista
+        ↓
+Área obtenida del mapa central
+        ↓
+Evaluación determinista de prioridad
+        ↓
+Identificación de información faltante
+        ↓
+AnalisisReporte con origen REGLAS
+```
+
+Este flujo no consulta duplicados, no persiste, no audita y no decide una revisión humana. Los integrantes responsables deben componer esas capacidades alrededor del contrato `AnalisisReporte`.
+
+## Determinación del estado inicial
+
+`determinar_estado_inicial(informacion_faltante, posibles_duplicados)` limita el dominio a estados iniciales permitidos y aplica esta precedencia:
+
+1. Si existe información crítica faltante: `REQUIERE_INFORMACION`.
+2. Si no faltan datos y existen candidatos: `POSIBLE_DUPLICADO`.
+3. En los demás casos: `PENDIENTE_REVISION`.
+
+La función nunca devuelve `APROBADA`, `MODIFICADA_Y_APROBADA` o `RECHAZADA`. Esos estados requieren una acción humana explícita y pertenecen al flujo de revisión.
+
+La presencia de un candidato solo produce `POSIBLE_DUPLICADO`; no confirma equivalencia entre solicitudes.

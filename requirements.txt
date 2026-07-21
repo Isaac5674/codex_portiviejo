@@ -1,0 +1,7 @@
+# Dependencias autorizadas para el MVP de PortoReporta.
+streamlit
+openai-agents
+pydantic>=2,<3
+python-dotenv
+supabase
+pytest
