@@ -73,7 +73,7 @@ begin
     if tg_op = 'INSERT' and new.estado not in (
         'PENDIENTE_REVISION', 'REQUIERE_INFORMACION', 'POSIBLE_DUPLICADO'
     ) then
-        raise exception 'Una solicitud nueva debe iniciar en revisión, requerir información o marcar posible duplicado.';
+        raise exception 'Una solicitud nueva debe iniciar pendiente de revisión, requerir información o marcar un posible duplicado.';
     end if;
 
     if tg_op = 'UPDATE' and new.estado is distinct from old.estado and not (

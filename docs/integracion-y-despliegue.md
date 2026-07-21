@@ -7,10 +7,12 @@ Esta guía prepara la integración del equipo y el despliegue posterior. No decl
 | Componente | Estado | Responsable |
 |---|---|---|
 | Contratos, modelos y reglas locales | Disponible y probado | Integrante 1 |
-| Agente y herramientas | Disponible y probado | Integrante 2 |
-| Supabase, RLS, repositorios y auditoría | Disponible y probado | Integrante 3 |
+| Agente y herramientas | Código y pruebas unitarias disponibles; falta integración con la interfaz | Integrante 2 |
+| Supabase, RLS, repositorios y auditoría | Código, esquema, configuración remota y pruebas disponibles; falta integración con la interfaz | Integrante 3 |
 | Streamlit, revisión humana y flujo completo | Pendiente de integración | Integrante 4 |
 | Despliegue final | Bloqueado hasta completar criterios de aceptación | Responsable de despliegue |
+
+Al revisar la integración se alineó el trigger del esquema con el dominio: un caso nuevo con candidatos puede iniciar como `POSIBLE_DUPLICADO`, sin que esto confirme que los reportes sean iguales.
 
 ## Preparación local
 
@@ -94,6 +96,7 @@ No desplegar hasta que todos los criterios de [`criterios-de-aceptacion.md`](cri
 - [ ] Las variables reales se configuran solo en el servicio de despliegue.
 - [ ] La clave secreta de Supabase se usa únicamente del lado servidor.
 - [ ] RLS está activo y no existen políticas anónimas públicas.
+- [ ] Se aplicó la migración `202607210001_permitir_posible_duplicado_inicial.sql` en Supabase.
 - [ ] La aplicación inicia sin mostrar secretos.
 - [ ] La revisión humana sigue siendo obligatoria.
 - [ ] La falla de OpenAI activa el modo local visible.
@@ -103,7 +106,7 @@ No desplegar hasta que todos los criterios de [`criterios-de-aceptacion.md`](cri
 
 ## Procedimiento de despliegue
 
-La plataforma de despliegue todavía no está definida. Cuando se elija una, mantener el mismo flujo:
+Todavía no existe `app.py` ni una interfaz Streamlit integrada en la rama actual; por ello no hay una aplicación completa que desplegar. La plataforma de despliegue tampoco está definida. Cuando el Integrante 4 entregue el flujo completo y se elija una plataforma, mantener el mismo flujo:
 
 1. Crear un entorno separado del desarrollo.
 2. Instalar desde `requirements.txt`.
