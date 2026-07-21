@@ -199,4 +199,4 @@ La lista completa se encuentra en [`docs/criterios-de-aceptacion.md`](docs/crite
 
 ## Preparación para integración y despliegue
 
-La guía de [integración y despliegue](docs/integracion-y-despliegue.md) contiene dependencias, variables de entorno, el contrato entre integrantes, pruebas previas y la lista de salida. El proyecto no debe desplegarse hasta que los cuatro módulos cumplan los criterios de aceptación.
+La guía de [integración y despliegue](docs/integracion-y-despliegue.md) contiene dependencias, variables de entorno, pruebas previas y la lista de salida. La [guía de integración del equipo](docs/guia-de-integracion-equipo.md) define el contrato y la entrega mínima de cada integrante. El proyecto no debe desplegarse hasta que los cuatro módulos cumplan los criterios de aceptación.

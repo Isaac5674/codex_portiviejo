@@ -20,6 +20,7 @@ Esta carpeta contiene las reglas operativas y técnicas que deben leer Codex y c
 14. `decisiones-tecnicas.md`
 15. `glosario.md`
 16. `integracion-y-despliegue.md`
+17. `guia-de-integracion-equipo.md`
 
 ## Jerarquía de autoridad
 

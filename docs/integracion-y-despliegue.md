@@ -58,6 +58,8 @@ from src.rules import analizar_reporte_local, determinar_estado_inicial
 
 Ningún integrante debe duplicar enumeraciones, categorías, áreas o reglas de prioridad fuera de `src/models.py` y `src/rules.py`.
 
+La [guía de integración entre integrantes](guia-de-integracion-equipo.md) detalla los campos estables, responsabilidades y pruebas mínimas de cada entrega.
+
 ## Verificaciones antes de integrar
 
 Ejecutar primero las pruebas de dominio:
@@ -65,6 +67,7 @@ Ejecutar primero las pruebas de dominio:
 ```bash
 pytest tests/test_models.py -q
 pytest tests/test_rules.py -q
+pytest tests/test_demo_cases.py -q
 ```
 
 Después de integrar los otros módulos:
