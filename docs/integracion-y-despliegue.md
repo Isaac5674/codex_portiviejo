@@ -10,7 +10,7 @@ Esta guía prepara la integración del equipo y el despliegue posterior. No decl
 | Agente, herramientas y fallback | Disponible e integrado | Integrante 2 |
 | Supabase, RLS, repositorios y auditoría | Disponible e integrado | Integrante 3 |
 | Streamlit, revisión humana y flujo completo | Disponible e integrado | Integrante 4 |
-| Despliegue final | Bloqueado hasta completar criterios de aceptación | Responsable de despliegue |
+| Despliegue final | Configuración de Vercel preparada; falta autenticar, configurar secretos y verificar producción | Responsable de despliegue |
 
 Al revisar la integración se alineó el trigger del esquema con el dominio: un
 caso nuevo con candidatos puede iniciar como `POSIBLE_DUPLICADO`, sin que esto
@@ -112,18 +112,21 @@ No desplegar hasta que todos los criterios de [`criterios-de-aceptacion.md`](cri
 - [ ] `pytest -q` pasa con los módulos integrados.
 - [ ] Se prueba el flujo completo con datos ficticios, nunca con datos personales reales.
 
-## Procedimiento de despliegue
+## Despliegue en Vercel
 
-La interfaz Streamlit ya está integrada, pero la plataforma de despliegue no
-está definida. Cuando se elija una, mantener el mismo flujo:
+Vercel ejecuta Streamlit mediante la imagen declarada en `Dockerfile.vercel`.
+El contenedor escucha en la variable `PORT` asignada por Vercel y no contiene
+archivos `.env`, pruebas ni documentación.
 
-1. Crear un entorno separado del desarrollo.
-2. Instalar desde `requirements.txt`.
-3. Configurar las cuatro variables de entorno sin subir un archivo `.env`.
-4. Verificar la conexión a Supabase desde el servidor, no desde el navegador.
-5. Ejecutar la suite de pruebas y las comprobaciones manuales anteriores.
-6. Publicar solo una versión que supere la lista previa.
-7. Conservar el commit estable anterior para revertir si falla una verificación.
+1. Autenticar la CLI con `vercel login`.
+2. Enlazar o crear el proyecto con `vercel link`.
+3. Configurar `OPENAI_API_KEY`, `SUPABASE_URL`, `SUPABASE_SECRET_KEY` y
+   `APP_ENV=production` como variables cifradas de producción.
+4. Confirmar que la migración pendiente está aplicada en Supabase.
+5. Ejecutar `vercel deploy --prod`.
+6. Abrir la URL de producción y verificar inicio, creación, revisión humana,
+   fallos visibles e historial.
 
-No configurar despliegue, claves ni conectividad real hasta verificar las
-migraciones y los flujos externos en un entorno de prueba separado.
+El despliegue puede iniciar sin `OPENAI_API_KEY` usando reglas locales, pero
+la creación y consulta de expedientes requieren las dos variables de Supabase.
+Los secretos nunca deben agregarse al repositorio ni incorporarse a la imagen.

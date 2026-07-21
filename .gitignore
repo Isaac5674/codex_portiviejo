@@ -12,3 +12,6 @@ __pycache__/
 .coverage
 htmlcov/
 .ruff_cache/
+
+# Configuración local de Vercel
+.vercel/
