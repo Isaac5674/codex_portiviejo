@@ -64,6 +64,7 @@ Mostrar resultado
 |---|---|
 | Nuevo análisis | `PENDIENTE_REVISION` |
 | Nuevo análisis incompleto | `REQUIERE_INFORMACION` |
+| Nuevo análisis con candidato | `POSIBLE_DUPLICADO` |
 | `PENDIENTE_REVISION` | `APROBADA` |
 | `PENDIENTE_REVISION` | `MODIFICADA_Y_APROBADA` |
 | `PENDIENTE_REVISION` | `RECHAZADA` |

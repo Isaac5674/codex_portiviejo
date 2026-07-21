@@ -104,7 +104,8 @@ No desplegar hasta que todos los criterios de [`criterios-de-aceptacion.md`](cri
 - [ ] Las variables reales se configuran solo en el servicio de despliegue.
 - [ ] La clave secreta de Supabase se usa únicamente del lado servidor.
 - [ ] RLS está activo y no existen políticas anónimas públicas.
-- [ ] Se aplicó la migración `202607210001_permitir_posible_duplicado_inicial.sql` en Supabase.
+- [ ] Se aplicó la migración `20260721201357_add_analysis_duplicate_candidates.sql` en Supabase.
+- [ ] Se aplicó la migración `20260721201623_allow_duplicate_candidate_initial_state.sql` en Supabase.
 - [ ] La aplicación inicia sin mostrar secretos.
 - [ ] La revisión humana sigue siendo obligatoria.
 - [ ] La falla de OpenAI activa el modo local visible.

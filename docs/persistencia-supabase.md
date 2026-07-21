@@ -54,6 +54,11 @@ obtener_auditoria_por_solicitud(id)
 buscar_candidatos_duplicados(categoria, ubicacion)
 ```
 
+La integración debe usar `crear_solicitud_desde_analisis(entrada, analisis, estado)`
+cuando reciba los contratos Pydantic del dominio. Esta función convierte
+`AnalisisReporte` a los campos persistidos, incluyendo `posibles_duplicados` como
+JSONB, sin aceptar un diccionario arbitrario de la interfaz.
+
 ## Validación de respuestas
 
 Después de una inserción o actualización:

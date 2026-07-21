@@ -22,6 +22,7 @@ create table if not exists public.solicitudes (
     justificacion_agente text not null,
     informacion_faltante jsonb not null default '[]'::jsonb,
     senales_riesgo jsonb not null default '[]'::jsonb,
+    posibles_duplicados jsonb not null default '[]'::jsonb,
     origen_analisis text not null default 'REGLAS'
         check (origen_analisis in ('IA', 'REGLAS')),
     estado text not null default 'PENDIENTE_REVISION' check (
